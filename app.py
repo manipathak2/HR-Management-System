@@ -9,6 +9,67 @@ import sqlite3
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")   # use env var in production
+
+def init_database():
+    """Initialize database with tables and default users"""
+    db = sqlite3.connect("database.db")
+    cursor = db.cursor()
+    
+    # Create users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL CHECK(role IN ('ADMIN', 'HR'))
+        )
+    """)
+    
+    # Create employee table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS employee (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            dept TEXT NOT NULL,
+            role TEXT NOT NULL
+        )
+    """)
+    
+    # Create attendance table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('Present', 'Absent', 'Leave')),
+            FOREIGN KEY (employee_id) REFERENCES employee(id)
+        )
+    """)
+    
+    # Insert default users if they don't exist
+    try:
+        cursor.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        """, ("Ethara", "Ethara123", "ADMIN"))
+        
+        cursor.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        """, ("Prince", "Prince123", "HR"))
+        
+        print("✅ Database initialized with default users")
+    except sqlite3.IntegrityError:
+        print("✅ Database already initialized")
+    
+    db.commit()
+    db.close()
+
+# Initialize database on app startup
+with app.app_context():
+    init_database()
 def get_db():
     return sqlite3.connect("database.db")
 
