@@ -1,5 +1,6 @@
 from functools import wraps
 import email
+import os
 from flask import Flask, render_template, request, redirect, flash,session
 import sqlite3
 
@@ -7,7 +8,7 @@ import sqlite3
 
 app = Flask(__name__)
 
-app.secret_key = "secret123"   # add once at top
+app.secret_key = os.environ.get("SECRET_KEY", "secret123")   # use env var in production
 def get_db():
     return sqlite3.connect("database.db")
 
@@ -167,5 +168,6 @@ def logout():
     return redirect("/")
 
 if __name__=='__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
 
