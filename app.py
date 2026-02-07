@@ -58,7 +58,7 @@ def init_database():
         cursor.execute("""
             INSERT INTO users (username, password, role)
             VALUES (?, ?, ?)
-        """, ("Prince", "Prince123", "HR"))
+        """, ("Mani", "Mani123", "HR"))
         
         print("✅ Database initialized with default users")
     except sqlite3.IntegrityError:
